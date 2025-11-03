@@ -11,6 +11,8 @@ from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
 
+from flask_mail import Mail, Message
+
 # from models import Person
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
@@ -18,6 +20,18 @@ static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../dist/')
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+
+app.config.update(dict(
+    DEBUG=False,
+    MAIL_SERVER='smtp.gmail.com',
+    MAIL_PORT=587,
+    MAIL_USE_TLS=True,
+    MAIL_USE_SSL=False,
+    MAIL_USERNAME='jose.4geeks@gmail.com',
+    MAIL_PASSWORD=os.getenv('MAIL_PASSWORD')
+))
+
+mail = Mail(app)
 
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
@@ -57,6 +71,8 @@ def sitemap():
     return send_from_directory(static_file_dir, 'index.html')
 
 # any other endpoint will try to serve it like a static file
+
+
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
@@ -64,6 +80,22 @@ def serve_any_other_file(path):
     response = send_from_directory(static_file_dir, path)
     response.cache_control.max_age = 0  # avoid cache memory
     return response
+
+
+@app.route('/api/send-mail', methods=['GET'])
+def send_mail():
+
+    msg = Message(
+        subject='Correo enviado en la clase',
+        sender='jose.4geeks@gmail.com',
+        recipients=['jose.4geeks@gmail.com']
+    )
+
+    msg.html = '<h1>Si pude enviar el correo!</h1>'
+
+    mail.send(msg)
+
+    return jsonify({'msg': 'Correo enviado satisfactoriamente'})
 
 
 # this only runs if `$ python src/main.py` is executed
