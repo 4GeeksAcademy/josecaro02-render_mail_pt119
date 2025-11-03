@@ -82,7 +82,7 @@ def serve_any_other_file(path):
     return response
 
 
-@app.route('/api/send-mail', methods=['GET'])
+@app.route('/send-mail', methods=['GET'])
 def send_mail():
 
     msg = Message(
